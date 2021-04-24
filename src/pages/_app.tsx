@@ -1,12 +1,17 @@
-import { Header } from '../components/Header';
-import { Player } from '../components/Player';
-import '../styles/global.scss';
-import styles from '../styles/app.module.scss';
-import { PlayerContextProvider } from '../contexts/PlayerContext';
+import React from 'react'
 
-function MyApp({ Component, pageProps }) {
+import { AppProps } from 'next/dist/next-server/lib/router/router'
+
+import Header from '../components/Header'
+import Player from '../components/Player'
+import PlayerProvider from '../contexts/PlayerContext'
+import styles from '../styles/app.module.scss'
+
+import '../styles/global.scss'
+
+const App: React.FC<AppProps> = ({ Component, pageProps }: AppProps) => {
   return (
-    <PlayerContextProvider>
+    <PlayerProvider>
       <div className={styles.wrapper}>
         <main>
           <Header />
@@ -14,8 +19,8 @@ function MyApp({ Component, pageProps }) {
         </main>
         <Player />
       </div>
-    </PlayerContextProvider>
-  );
+    </PlayerProvider>
+  )
 }
 
-export default MyApp;
+export default App

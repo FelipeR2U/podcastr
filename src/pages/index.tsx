@@ -1,34 +1,50 @@
-import { GetStaticProps } from 'next';
-import Image from 'next/image';
-import Head from 'next/head';
-import Link from 'next/link';
-import { format, parseISO } from 'date-fns';
-import ptBR from 'date-fns/locale/pt-BR';
-import { api } from '../services/api';
-import { convertDurationToTimeString } from '../utils/convertDurationToTimeString';
-import styles from './home.module.scss';
-import { usePlayer } from '../contexts/PlayerContext';
+import React from 'react'
+
+import { format, parseISO } from 'date-fns'
+import ptBR from 'date-fns/locale/pt-BR'
+import { GetStaticProps } from 'next'
+import Head from 'next/head'
+import Image from 'next/image'
+import Link from 'next/link'
+
+import { usePlayer } from '../contexts/PlayerContext'
+import { api } from '../services/api'
+import { convertDurationToTimeString } from '../utils/convertDurationToTimeString'
+import styles from './home.module.scss'
+
+type EpisodeApi = {
+  id: string
+  title: string
+  thumbnail: string
+  members: string
+  file: {
+    url: string
+    duration: number
+  }
+  // eslint-disable-next-line camelcase
+  published_at: string
+}
 
 type Episode = {
-  id: string;
-  title: string;
-  thumbnail: string;
-  members: string;
-  duration: number;
-  durationAsString: string;
-  url: string;
-  publishedAt: string;
-};
+  id: string
+  title: string
+  thumbnail: string
+  members: string
+  duration: number
+  durationAsString: string
+  url: string
+  publishedAt: string
+}
 
 type HomeProps = {
-  latestEpisodes: Episode[];
-  allEpisodes: Episode[];
-};
+  latestEpisodes: Episode[]
+  allEpisodes: Episode[]
+}
 
-export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
-  const { playList } = usePlayer();
+const Home: React.FC<HomeProps> = ({ latestEpisodes, allEpisodes }: HomeProps) => {
+  const { playList } = usePlayer()
 
-  const episodeList = [...latestEpisodes, ...allEpisodes];
+  const episodeList = [...latestEpisodes, ...allEpisodes]
 
   return (
     <div className={styles.homepage}>
@@ -48,7 +64,7 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                   height={192}
                   src={episode.thumbnail}
                   alt={episode.title}
-                  objectFit="cover"
+                  objectFit='cover'
                 />
 
                 <div className={styles.episodeDetails}>
@@ -60,14 +76,11 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                   <span>{episode.durationAsString}</span>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => playList(episodeList, index)}
-                >
-                  <img src="/play-green.svg" alt="Tocar episódio" />
+                <button type='button' onClick={() => playList(episodeList, index)}>
+                  <img src='/play-green.svg' alt='Tocar episódio' />
                 </button>
               </li>
-            );
+            )
           })}
         </ul>
       </section>
@@ -78,12 +91,12 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
         <table cellSpacing={0}>
           <thead>
             <tr>
-              <th></th>
+              <th aria-label='empty' />
               <th>Podcast</th>
               <th>Integrantes</th>
               <th>Data</th>
               <th>Duração</th>
-              <th></th>
+              <th aria-label='empty' />
             </tr>
           </thead>
           <tbody>
@@ -96,7 +109,7 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                       height={120}
                       src={episode.thumbnail}
                       alt={episode.title}
-                      objectFit="cover"
+                      objectFit='cover'
                     />
                   </td>
                   <td>
@@ -109,32 +122,30 @@ export default function Home({ latestEpisodes, allEpisodes }: HomeProps) {
                   <td>{episode.durationAsString}</td>
                   <td>
                     <button
-                      type="button"
-                      onClick={() =>
-                        playList(episodeList, index + latestEpisodes.length)
-                      }
+                      type='button'
+                      onClick={() => playList(episodeList, index + latestEpisodes.length)}
                     >
-                      <img src="/play-green.svg" alt="Tocar episódio" />
+                      <img src='/play-green.svg' alt='Tocar episódio' />
                     </button>
                   </td>
                 </tr>
-              );
+              )
             })}
           </tbody>
         </table>
       </section>
     </div>
-  );
+  )
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data } = await api.get('episodes', {
+  const { data } = await api.get<EpisodeApi[]>('episodes', {
     params: {
       _limit: 12,
       _sort: 'published_at',
-      _order: 'desc',
-    },
-  });
+      _order: 'desc'
+    }
+  })
 
   const episodes = data.map((episode) => {
     return {
@@ -143,24 +154,24 @@ export const getStaticProps: GetStaticProps = async () => {
       thumbnail: episode.thumbnail,
       members: episode.members,
       publishedAt: format(parseISO(episode.published_at), 'd MMM yy', {
-        locale: ptBR,
+        locale: ptBR
       }),
       duration: Number(episode.file.duration),
-      durationAsString: convertDurationToTimeString(
-        Number(episode.file.duration)
-      ),
-      url: episode.file.url,
-    };
-  });
+      durationAsString: convertDurationToTimeString(Number(episode.file.duration)),
+      url: episode.file.url
+    }
+  })
 
-  const latestEpisodes = episodes.slice(0, 2);
-  const allEpisodes = episodes.slice(2, episodes.length);
+  const latestEpisodes = episodes.slice(0, 2)
+  const allEpisodes = episodes.slice(2, episodes.length)
 
   return {
     props: {
       latestEpisodes,
-      allEpisodes,
+      allEpisodes
     },
-    revalidate: 60 * 60 * 8,
-  };
-};
+    revalidate: 60 * 60 * 8
+  }
+}
+
+export default Home

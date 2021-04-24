@@ -1,15 +1,17 @@
-import Image from 'next/image';
-import { useEffect, useRef, useState } from 'react';
-import Slider from 'rc-slider';
-import 'rc-slider/assets/index.css';
-import { usePlayer } from '../../contexts/PlayerContext';
-import styles from './styles.module.scss';
-import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString';
+import React, { useEffect, useRef, useState } from 'react'
 
-export function Player() {
-  const audioRef = useRef<HTMLAudioElement>(null);
+import Image from 'next/image'
+import Slider from 'rc-slider'
 
-  const [progress, setProgress] = useState(0);
+import 'rc-slider/assets/index.css'
+import { usePlayer } from '../../contexts/PlayerContext'
+import { convertDurationToTimeString } from '../../utils/convertDurationToTimeString'
+import styles from './styles.module.scss'
+
+const Player: React.FC = () => {
+  const audioRef = useRef<HTMLAudioElement>(null)
+
+  const [progress, setProgress] = useState(0)
 
   const {
     episodeList,
@@ -25,59 +27,60 @@ export function Player() {
     playPrevious,
     hasNext,
     hasPrevious,
-    clearPlayerState,
-  } = usePlayer();
+    clearPlayerState
+  } = usePlayer()
 
   useEffect(() => {
     if (!audioRef.current) {
-      return;
+      return
     }
 
     if (isPlaying) {
-      audioRef.current.play();
+      audioRef.current.play()
     } else {
-      audioRef.current.pause();
+      audioRef.current.pause()
     }
-  }, [isPlaying]);
+  }, [isPlaying])
 
   function setupProgressListener() {
-    audioRef.current.currentTime = 0;
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0
 
-    audioRef.current.addEventListener('timeupdate', () => {
-      setProgress(Math.floor(audioRef.current.currentTime));
-    });
+      audioRef.current.addEventListener('timeupdate', () => {
+        if (audioRef.current) {
+          setProgress(Math.floor(audioRef.current.currentTime))
+        }
+      })
+    }
   }
 
   function handleSeek(amount: number) {
-    audioRef.current.currentTime = amount;
-    setProgress(amount);
+    if (audioRef.current) {
+      audioRef.current.currentTime = amount
+      setProgress(amount)
+    }
   }
 
   function handleEpisodeEnded() {
     if (hasNext) {
-      playNext();
+      playNext()
     } else {
-      clearPlayerState();
+      clearPlayerState()
     }
   }
 
-  const episode = episodeList[currentEpisodeIndex];
+  const episode = episodeList[currentEpisodeIndex]
 
   return (
     <div className={styles.playerContainer}>
       <header>
-        <img src="/playing.svg" alt="Tocando agora" />
+        <img src='/playing.svg' alt='Tocando agora' />
         <strong>Tocando agora</strong>
       </header>
 
       {episode ? (
         <div className={styles.currentEpisode}>
-          <Image
-            width={592}
-            height={592}
-            src={episode.thumbnail}
-            objectFit="cover"
-          />
+          <Image width={592} height={592} src={episode.thumbnail} objectFit='cover' />
           <strong>{episode.title}</strong>
           <span>{episode.members}</span>
         </div>
@@ -117,54 +120,50 @@ export function Player() {
             onPlay={() => setPlayingState(true)}
             onPause={() => setPlayingState(false)}
             onLoadedMetadata={setupProgressListener}
-          />
+          >
+            <track kind='captions' />
+          </audio>
         )}
 
         <div className={styles.buttons}>
           <button
-            type="button"
+            type='button'
             disabled={!episode || episodeList.length === 1}
             onClick={toggleShuffle}
             className={isShuffling ? styles.isActive : ''}
           >
-            <img src="/shuffle.svg" alt="Embaralhar" />
+            <img src='/shuffle.svg' alt='Embaralhar' />
+          </button>
+          <button type='button' disabled={!episode || !hasPrevious} onClick={playPrevious}>
+            <img src='/play-previous.svg' alt='Tocar anterior' />
           </button>
           <button
-            type="button"
-            disabled={!episode || !hasPrevious}
-            onClick={playPrevious}
-          >
-            <img src="/play-previous.svg" alt="Tocar anterior" />
-          </button>
-          <button
-            type="button"
+            type='button'
             className={styles.playButton}
             disabled={!episode}
             onClick={togglePlay}
           >
             {isPlaying ? (
-              <img src="/pause.svg" alt="Pausar" />
+              <img src='/pause.svg' alt='Pausar' />
             ) : (
-              <img src="/play.svg" alt="Tocar" />
+              <img src='/play.svg' alt='Tocar' />
             )}
           </button>
-          <button
-            type="button"
-            disabled={!episode || !hasNext}
-            onClick={playNext}
-          >
-            <img src="/play-next.svg" alt="Tocar próxima" />
+          <button type='button' disabled={!episode || !hasNext} onClick={playNext}>
+            <img src='/play-next.svg' alt='Tocar próxima' />
           </button>
           <button
-            type="button"
+            type='button'
             disabled={!episode}
             onClick={toggleLoop}
             className={isLooping ? styles.isActive : ''}
           >
-            <img src="/repeat.svg" alt="Repetir" />
+            <img src='/repeat.svg' alt='Repetir' />
           </button>
         </div>
       </footer>
     </div>
-  );
+  )
 }
+
+export default Player
